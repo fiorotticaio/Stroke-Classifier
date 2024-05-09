@@ -1,6 +1,8 @@
 import pandas as pd
+from sklearn.calibration import cross_val_predict
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MaxAbsScaler, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -39,7 +41,8 @@ numeric_features = ['age', 'hypertension', 'heart_disease', 'avg_glucose_level',
 numeric_transformer = Pipeline(steps=[
     ('imputer', SimpleImputer(strategy='median')),
     # Este passo substitui os valores ausentes nas características numéricas pela mediana dos valores presentes naquela característica.
-    ('scaler', StandardScaler())
+    ("normalization", MaxAbsScaler()),
+    # ('scaler', StandardScaler())
     # Este passo padroniza (escala) as características numéricas para que tenham uma média zero e uma variância unitária.
 ])
 
@@ -61,10 +64,13 @@ clf = Pipeline(steps=[
 
 
 # ============== 6. Avaliação do Modelo ==============
-print("X:")
-print(X)
-print("y:")
-print(y)
 scores = cross_val_score(clf, X, y, cv=5)
-print(scores)
 print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+# Calcular outras métricas
+y_pred = cross_val_predict(clf, X, y, cv=5)
+report = classification_report(y, y_pred)
+
+# Imprimir o relatório de classificação
+print("Classification Report:")
+print(report)
