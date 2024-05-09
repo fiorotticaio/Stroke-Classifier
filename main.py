@@ -1,7 +1,6 @@
 import pandas as pd
 from sklearn.calibration import cross_val_predict
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MaxAbsScaler, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
@@ -21,29 +20,30 @@ data = pd.get_dummies(data, columns=['gender', 'ever_married', 'work_type', 'Res
 # get_dummies cria colunas para cada valor único em uma variável categórica. Ou seja, se uma variável categórica 
 # tiver mais de duas categorias, cada categoria será representada por uma coluna binária separada. Por exemplo, 
 # se a variável work_type tiver as categorias "Private", "Self-employed", "Govt_job" e "children", a codificação 
-# one-hot criará quatro novas colunas binárias, uma para cada categoria.
+# one-hot criará quatro novas colunas binárias, uma para cada categoria
 
 
 # ============== 3. Separação dos Dados ==============
 X = data.drop(['id', 'stroke'], axis=1)
 # Aqui, estamos criando uma variável X que contém todas as características dos pacientes, exceto o id e a indicação 
-# de AVC (stroke). Ou seja, estamos removendo essas duas colunas do conjunto de dados.
+# de AVC (stroke). Ou seja, estamos removendo essas duas colunas do conjunto de dados
 
 y = data['stroke']
 # Esta linha cria uma variável y que contém apenas a indicação de AVC (stroke). Esta será a variável alvo que 
-# queremos prever com base nas características dos pacientes contidas em X.
+# queremos prever com base nas características dos pacientes contidas em X
 
 
 # ============== 4. Construção do Pipeline ==============
 numeric_features = ['age', 'hypertension', 'heart_disease', 'avg_glucose_level', 'bmi']
-# Esta linha define uma lista de nomes das características numéricas do conjunto de dados.
+# Esta linha define uma lista de nomes das características numéricas do conjunto de dados
 
 numeric_transformer = Pipeline(steps=[
     ('imputer', SimpleImputer(strategy='median')),
-    # Este passo substitui os valores ausentes nas características numéricas pela mediana dos valores presentes naquela característica.
+    # Este passo substitui os valores ausentes nas características numéricas pela mediana dos valores presentes naquela característica
     ("normalization", MaxAbsScaler()),
-    # ('scaler', StandardScaler())
-    # Este passo padroniza (escala) as características numéricas para que tenham uma média zero e uma variância unitária.
+    # Este passo normaliza as características numéricas para que todos os valores estejam entre -1 e 1
+    ('scaler', StandardScaler())
+    # Este passo padroniza (escala) as características numéricas para que tenham uma média zero e uma variância unitária
 ])
 
 preprocessor = ColumnTransformer(
@@ -53,22 +53,23 @@ preprocessor = ColumnTransformer(
 # Aqui, estamos criando um ColumnTransformer, que permite aplicar transformações específicas a colunas 
 # específicas do conjunto de dados. Estamos configurando este ColumnTransformer para aplicar o numeric_transformer 
 # (o pipeline que criamos anteriormente) apenas às características numéricas especificadas em numeric_features. 
-# Isso nos permite manter outras características (por exemplo, categóricas) intactas durante o pré-processamento.
+# Isso nos permite manter outras características (por exemplo, categóricas) intactas durante o pré-processamento
 
 
 # ============== 5. Escolha e Treinamento do Modelo ==============
 clf = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    # Aplica todas as transformações definidas no preprocessor às características de entrada.
+    # Aplica todas as transformações definidas no preprocessor às características de entrada
     ('classifier', RandomForestClassifier())])
+    # Classificador que pertence à família de algoritmos de florestas aleatórias
 
 
 # ============== 6. Avaliação do Modelo ==============
-scores = cross_val_score(clf, X, y, cv=5)
+scores = cross_val_score(clf, X, y, cv=10, scoring="accuracy")
 print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
 # Calcular outras métricas
-y_pred = cross_val_predict(clf, X, y, cv=5)
+y_pred = cross_val_predict(clf, X, y, cv=10)
 report = classification_report(y, y_pred)
 
 # Imprimir o relatório de classificação
