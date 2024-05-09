@@ -8,11 +8,11 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 
-# ============== 1. Leitura dos Dados ==============
+# ============== 1. Data Reading ==============
 data = pd.read_csv('healthcare-dataset-stroke-data.csv')
 
 
-# ============== 2. Limpeza e Preparação dos Dados ==============
+# ============== 2. Data Cleaning and Preparation ==============
 data['bmi'] = data['bmi'].replace('N/A', pd.NA)
 # Essa linha substitui os valores 'N/A' na coluna bmi por pd.NA, que é um valor especial do pandas que indica dados ausentes
 
@@ -23,7 +23,7 @@ data = pd.get_dummies(data, columns=['gender', 'ever_married', 'work_type', 'Res
 # one-hot criará quatro novas colunas binárias, uma para cada categoria
 
 
-# ============== 3. Separação dos Dados ==============
+# ============== 3. Data Separation ==============
 X = data.drop(['id', 'stroke'], axis=1)
 # Aqui, estamos criando uma variável X que contém todas as características dos pacientes, exceto o id e a indicação 
 # de AVC (stroke). Ou seja, estamos removendo essas duas colunas do conjunto de dados
@@ -33,7 +33,7 @@ y = data['stroke']
 # queremos prever com base nas características dos pacientes contidas em X
 
 
-# ============== 4. Construção do Pipeline ==============
+# ============== 4. Pipeline Construction ==============
 numeric_features = ['age', 'hypertension', 'heart_disease', 'avg_glucose_level', 'bmi']
 # Esta linha define uma lista de nomes das características numéricas do conjunto de dados
 
@@ -56,7 +56,7 @@ preprocessor = ColumnTransformer(
 # Isso nos permite manter outras características (por exemplo, categóricas) intactas durante o pré-processamento
 
 
-# ============== 5. Escolha e Treinamento do Modelo ==============
+# ============== 5. Model Choice and Training ==============
 clf = Pipeline(steps=[
     ('preprocessor', preprocessor),
     # Aplica todas as transformações definidas no preprocessor às características de entrada
@@ -64,14 +64,14 @@ clf = Pipeline(steps=[
     # Classificador que pertence à família de algoritmos de florestas aleatórias
 
 
-# ============== 6. Avaliação do Modelo ==============
+# ============== 6. Model Assessment ==============
 scores = cross_val_score(clf, X, y, cv=10, scoring="accuracy")
 print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
-# Calcular outras métricas
+# Calculate other metrics
 y_pred = cross_val_predict(clf, X, y, cv=10)
 report = classification_report(y, y_pred)
 
-# Imprimir o relatório de classificação
+# Print the rating report
 print("Classification Report:")
 print(report)
